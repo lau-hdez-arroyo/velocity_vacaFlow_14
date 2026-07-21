@@ -4,9 +4,9 @@
 **Document ID:** NFR-001
 **Reference:** SI-001 (Strategic Intake)
 **Phase:** 03 — Requirements
-**Author:** David Valdez (AI Assisted)
-**Date:** 2026-07-18
-**Version:** 1.0
+**Author:** David Valdez, Laura Hernandez (AI Assisted)
+**Date:** 2026-07-20
+**Version:** 3.0
 **Status:** Draft
 
 ---
@@ -17,7 +17,7 @@ This register documents the non-functional requirements for VacaFlow, an interna
 
 Given the MVP nature and local execution context, NFR priorities are calibrated accordingly. Security and correctness are the dominant quality attributes — they are acceptance-gating. Usability and maintainability are addressed at a level appropriate for an internal tool. Performance at scale, high availability, and regulatory compliance are explicitly deferred pending a production promotion decision.
 
-This document covers **21 non-functional requirements** across **7 active quality attribute categories**. One category (Compliance) is formally acknowledged as out of scope for the MVP with deferred conditions recorded.
+This document covers **23 non-functional requirements** across **8 quality attribute categories**. One category (Compliance) is formally acknowledged as out of scope for the MVP with deferred conditions recorded.
 
 ---
 
@@ -32,8 +32,8 @@ This document covers **21 non-functional requirements** across **7 active qualit
 | Reliability | 4 | 4 | — | — |
 | Maintainability | 4 | — | 2 | 2 |
 | Compatibility | 2 | — | 1 | 1 |
-| Compliance | 2 | — | — | — |
-| **Total** | **23** | **9** | **6** | **5** |
+| Compliance | 2 | — | — | 2 |
+| **Total** | **23** | **9** | **6** | **8** |
 
 ---
 
@@ -44,7 +44,7 @@ This document covers **21 non-functional requirements** across **7 active qualit
 **Priority:** Medium
 
 #### Requirement
-The application shall respond quickly enough that a single reviewer can complete the full end-to-end acceptance workflow — register, log in, create a Draft request, validate date rules, edit, submit, cancel a second draft, manager log in, approve or reject with comment, and view the final result — without perceptible blocking delays.
+The application shall respond quickly enough that a single reviewer can complete the full end-to-end acceptance workflow — register, log in, create a Draft request, validate date rules, edit, submit, create a second Draft, cancel it, manager log in, approve or reject with comment, and view the final result — without perceptible blocking delays.
 
 #### Acceptance Criteria
 | Metric | Target | Threshold | Condition |
@@ -55,6 +55,9 @@ The application shall respond quickly enough that a single reviewer can complete
 
 #### Conditions
 - User load: 1–5 concurrent users (reviewer team only, local execution)
+
+  > ⚠️ **Note:** This concurrency estimate originates from SI-001 §5 (Assumptions), where the assumption that "SQLite is sufficient for the data volume and concurrency expected during local review (small number of concurrent users — reviewer team only)" is explicitly marked as **Not Validated**. It is also an open Critical Information Gap recorded in SI-001 §6 ("Number of employees expected to use the MVP during the review period"). This parameter should not be treated as a confirmed design baseline until those items are resolved.
+
 - Network: Localhost loopback only; no public network involved
 - Data volume: Seeded absence types, at most a few dozen requests created during review
 
@@ -63,8 +66,9 @@ The application shall respond quickly enough that a single reviewer can complete
 - No formal load testing tool is required for this MVP
 
 #### Related Requirements
-- SI-001 §4 Constraints: local execution from source code; no production load
-- SI-001 §5 Assumptions: SQLite sufficient for reviewer team concurrency
+- SI-001 §5 Constraints: local execution from source code; no production load
+- SI-001 §5 Assumptions: SQLite concurrency assumption (Not Validated — see Conditions note above)
+- SI-001 §6 Critical Information Gaps: number of MVP users (open)
 
 ---
 
@@ -111,7 +115,7 @@ The API shall always derive the identity of the acting user (employee or manager
 - Penetration test (manual): attempt to forge an approver ID in an approval request body; confirm rejection
 
 #### Related Requirements
-- SI-001 §4 Constraints: "The API must derive the current user and responsible approver from the authenticated session"
+- SI-001 §5 Constraints: the API must derive the current user and responsible approver from the authenticated session
 - NFR-SEC-003 (Authorization)
 
 ---
@@ -128,7 +132,7 @@ All ownership and role checks defined by the VacaFlow business rules shall be en
 |------|-----------------------|
 | Only the request owner may edit, submit, or cancel their own request | API returns 403 if the authenticated user does not match the request owner |
 | Only a user with the Manager role may approve or reject | API returns 403 if the authenticated user has the Employee role |
-| A manager may only act on requests belonging to employees assigned to them | API returns 403 if the request does not belong to an employee under that manager |
+| A manager may only act on requests belonging to employees assigned to them | API returns 403 if the request does not belong to an employee under that manager — **Note:** this criterion depends on the one-to-one Manager-to-Employee assignment model (BR-013 / BR-DATA-002), which remains **pending formal confirmation** per SI-001 §6 Critical Information Gaps |
 | A manager may not approve or reject their own request | API returns 403 if the request owner is the same as the authenticated manager |
 | Only Submitted requests may be approved or rejected | API returns 400 or 422 if the request is not in Submitted state |
 | Only Draft requests may be edited | API returns 400 or 422 if the request is not in Draft state |
@@ -143,6 +147,7 @@ All ownership and role checks defined by the VacaFlow business rules shall be en
 
 #### Related Requirements
 - SI-001 §4 Scope: business rules enforced server-side
+- SI-001 §6 Critical Information Gaps: manager-to-employee assignment model (open — impacts routing and the third rule above)
 - NFR-SEC-002 (Identity Derivation)
 - NFR-REL-001 (State Transition Integrity)
 
@@ -166,7 +171,7 @@ The SQLite database file shall not be publicly exposed and shall not be committe
 - Documentation review: confirm the README documents the database file path
 
 #### Related Requirements
-- SI-001 §5 Constraints: "The database must not be committed with real passwords and must not be publicly exposed"
+- SI-001 §5 Constraints: the database must not be committed with real passwords and must not be publicly exposed
 - SI-001 §5 Assumptions: legal/regulatory deferred but basic data protection in force during MVP
 
 ---
@@ -208,7 +213,7 @@ The application shall start successfully from source code and remain operational
 |----------|-------------|
 | Cold start (no existing database) | Application starts, migrates, and seeds data without manual intervention |
 | Database already exists | Application starts and re-uses existing data without re-seeding or overwriting |
-| Reviewer session (1–5 users, local) | Application remains operational for the duration of the acceptance demonstration |
+| Reviewer session (1–5 users, local) | Application remains operational for the duration of the acceptance demonstration — **Note:** the 1–5 user estimate derives from SI-001 §5 Assumptions (marked Not Validated) and SI-001 §6 (open Critical Information Gap); it is not a confirmed design parameter |
 | Crash during review | Constitutes a blocking defect; must be resolved before acceptance |
 
 - No formal uptime SLA, RTO, or RPO is defined for this MVP
@@ -218,7 +223,9 @@ The application shall start successfully from source code and remain operational
 - Acceptance walkthrough: reviewer starts from a clean state; application completes full workflow without crash or restart
 
 #### Related Requirements
-- SI-001 §4 Constraints: "Blocking defects found during review window must be resolved before final acceptance"
+- SI-001 §5 Constraints: blocking defects found during the review window must be resolved before final acceptance
+- SI-001 §5 Assumptions: SQLite concurrency assumption (Not Validated)
+- SI-001 §6 Critical Information Gaps: number of MVP users (open)
 
 ---
 
@@ -227,7 +234,7 @@ The application shall start successfully from source code and remain operational
 **Priority:** Medium
 
 #### Requirement
-Any defect that prevents the completion of the end-to-end acceptance workflow (register, log in, create Draft, validate, edit, submit, cancel, manager approve/reject, view result) shall be classified as a blocking defect and resolved before final acceptance sign-off. Cosmetic issues may be deferred.
+Any defect that prevents the completion of the end-to-end acceptance workflow (register, log in, create Draft, validate, edit, submit, create a second Draft, cancel it, manager approve/reject, view result) shall be classified as a blocking defect and resolved before final acceptance sign-off. Cosmetic issues may be deferred.
 
 #### Acceptance Criteria
 | Defect Type | Classification | Resolution Requirement |
@@ -238,10 +245,10 @@ Any defect that prevents the completion of the end-to-end acceptance workflow (r
 | Feature not in the agreed scope is missing | Out of scope | Not a defect |
 
 #### Verification Method
-- Live end-to-end acceptance session per SI-001 §4 Business Constraints
+- Live end-to-end acceptance session per SI-001 §5 Constraints (Business Constraints)
 
 #### Related Requirements
-- SI-001 §7 Decision: "Blocking defects found during the review window must be resolved before final acceptance"
+- SI-001 §5 Constraints: blocking defects found during the review window must be resolved before final acceptance
 
 ---
 
@@ -406,7 +413,7 @@ Every approval or rejection decision shall produce exactly one Approval record i
 #### Related Requirements
 - NFR-SEC-002 (Identity derivation)
 - NFR-SEC-003 (Manager authorization)
-- SI-001 §2 Value Proposition: "Every approval or rejection creates one Approval record"
+- SI-001 §2 Value Proposition: every approval or rejection creates one Approval record
 
 ---
 
@@ -427,7 +434,7 @@ All data created during a review session (users, requests, approvals) shall pers
 
 #### Related Requirements
 - NFR-AVAIL-001 (Startup behavior)
-- SI-001 §4 Constraints: automatic migration on startup
+- SI-001 §5 Constraints: automatic migration on startup
 
 ---
 
@@ -460,20 +467,20 @@ The codebase shall follow a reduced Onion Architecture with clear layer separati
 - No circular project references permitted
 
 #### Related Requirements
-- SI-001 §4 Constraints: "reduced Onion Architecture (Domain, Application, Infrastructure, Api, Web layers)"
+- SI-001 §5 Constraints: reduced Onion Architecture (Domain, Application, Infrastructure, Api, Web layers)
 
 ---
 
-### NFR-MAINT-002: Avoidance of Unnecessary Patterns
+### NFR-MAINT-002: Avoidance of Unnecessary Abstraction Patterns
 **Category:** Maintainability
 **Priority:** High
 
 #### Requirement
-The codebase shall not introduce MediatR, CQRS pipelines, generic repository abstractions, event bus or messaging frameworks, or other patterns that add indirection without benefit at the MVP scale.
+The codebase shall not introduce additional abstraction layers or frameworks that add indirection without proportionate benefit at the MVP scale. The stack is constrained to ASP.NET Core Minimal API, EF Core, and Next.js; patterns such as mediator dispatch pipelines, generic repository abstractions, event bus frameworks, or CQRS segregation frameworks are explicitly prohibited.
 
 #### Acceptance Criteria
 - [ ] No MediatR package reference in any project
-- [ ] No IRepository<T> or generic repository pattern; repositories (if used) are use-case-specific interfaces
+- [ ] No `IRepository<T>` or generic repository pattern; repositories (if used) are use-case-specific interfaces
 - [ ] No event bus, service bus, or message broker
 - [ ] No CQRS command/query segregation framework
 - [ ] Use case logic is directly callable from API endpoints without a mediator dispatch layer
@@ -482,7 +489,7 @@ The codebase shall not introduce MediatR, CQRS pipelines, generic repository abs
 - Code review: inspect NuGet package references and project structure; confirm absence of prohibited packages and patterns
 
 #### Related Requirements
-- SI-001 §4 Constraints: "unnecessary patterns such as MediatR, CQRS, generic repositories, and messaging frameworks must be avoided"
+- SI-001 §5 Constraints: reduced Onion Architecture; stack constrained to ASP.NET Core Minimal API, EF Core, Next.js
 
 ---
 
@@ -528,7 +535,7 @@ A README or equivalent document shall enable a new reviewer to start both the AP
 - Dry run: a team member follows the README on a clean machine and confirms the application starts and is usable without additional guidance
 
 #### Related Requirements
-- SI-001 §5 Assumptions: "development team has local environments capable of running Next.js and ASP.NET Core simultaneously"
+- SI-001 §5 Assumptions: development team has local environments capable of running Next.js and ASP.NET Core simultaneously
 - NFR-AVAIL-001 (Cold start)
 
 ---
@@ -561,7 +568,7 @@ The application shall run entirely from source code on a local machine without r
 - Acceptance environment: reviewer machine with only the documented prerequisites installed; application starts and runs the full workflow
 
 #### Related Requirements
-- SI-001 §4 Constraints: "Application must run locally from source code — no Azure, cloud hosting, Docker, or CI/CD in this MVP"
+- SI-001 §5 Constraints: application must run locally from source code — no Azure, cloud hosting, Docker, or CI/CD in this MVP
 
 ---
 
@@ -617,7 +624,7 @@ The MVP stores basic employee identity data (name, email, hashed password) and a
 - Sponsor acknowledgment recorded in SI-001 §5 Assumptions (legal/regulatory assumption)
 
 #### Related Requirements
-- SI-001 §5 Assumptions: "No GDPR, HIPAA, or equivalent regulatory framework applies to the storage of employee name, email, and absence reason data in this MVP context"
+- SI-001 §5 Assumptions: no GDPR, HIPAA, or equivalent regulatory framework applies to the storage of employee name, email, and absence reason data in this MVP context
 - SI-001 §5 Constraints: Legal Constraints
 
 ---
@@ -644,7 +651,7 @@ Advanced audit logging (immutable event log, timestamp-stamped action history, e
 - Post-approval database inspection: confirm Approval record fields are populated and correct
 
 #### Related Requirements
-- SI-001 §4 Scope: "Advanced audit logs beyond the core Approval record" listed under Out of Scope
+- SI-001 §4 Scope: advanced audit logs beyond the core Approval record listed under Out of Scope
 
 ---
 
@@ -652,23 +659,23 @@ Advanced audit logging (immutable event log, timestamp-stamped action history, e
 
 | NFR ID | Description | Related FRs | Predecessor Reference | Architecture Component |
 |--------|-------------|-------------|----------------------|------------------------|
-| NFR-PERF-001 | Reviewer responsiveness | All acceptance workflow steps | SI-001 §4 Constraints | API + SQLite |
+| NFR-PERF-001 | Reviewer responsiveness | All acceptance workflow steps | SI-001 §5 Constraints, §5 Assumptions (Not Validated), §6 | API + SQLite |
 | NFR-SEC-001 | Password hashing | Registration | SI-001 §5 Constraints | Infrastructure / Identity |
 | NFR-SEC-002 | Session-based identity | All authenticated actions | SI-001 §5 Constraints | Api / Auth middleware |
-| NFR-SEC-003 | Role-based authorization | Edit, Submit, Cancel, Approve, Reject | SI-001 §4 Scope | Application layer |
+| NFR-SEC-003 | Role-based authorization | Edit, Submit, Cancel, Approve, Reject | SI-001 §4 Scope, §6 (assignment model open) | Application layer |
 | NFR-SEC-004 | Database file protection | — | SI-001 §5 Constraints | Infrastructure / DevOps |
 | NFR-SEC-005 | Session management | Login, Logout | SI-001 §4 Scope | Api / Auth middleware |
-| NFR-AVAIL-001 | Local availability | All workflow steps | SI-001 §4 Constraints | Api + SQLite + Web |
-| NFR-AVAIL-002 | Blocking defect resolution | All acceptance steps | SI-001 §4 Constraints | Cross-cutting |
+| NFR-AVAIL-001 | Local availability | All workflow steps | SI-001 §5 Constraints, §5 Assumptions (Not Validated), §6 | Api + SQLite + Web |
+| NFR-AVAIL-002 | Blocking defect resolution | All acceptance steps | SI-001 §5 Constraints | Cross-cutting |
 | NFR-USE-001 | No invalid actions in UI | All state-dependent actions | SI-001 §4 Scope | Web layer |
 | NFR-USE-002 | Readable forms | Registration, request creation/edit | SI-001 §4 Scope | Web layer |
 | NFR-USE-003 | Accessibility baseline | All UI screens | — | Web layer |
 | NFR-REL-001 | State transition integrity | Submit, Cancel, Approve, Reject | SI-001 §4 Scope | Domain / Application |
 | NFR-REL-002 | Date validation integrity | Request creation and edit | SI-001 §4 Scope | Domain / Application |
 | NFR-REL-003 | Approval record integrity | Approve, Reject | SI-001 §2 Value Proposition | Domain / Application / Infrastructure |
-| NFR-REL-004 | Data persistence on restart | All data-creating operations | SI-001 §4 Constraints | Infrastructure / EF Core |
+| NFR-REL-004 | Data persistence on restart | All data-creating operations | SI-001 §5 Constraints | Infrastructure / EF Core |
 | NFR-MAINT-001 | Onion architecture layers | — | SI-001 §5 Constraints | All layers |
-| NFR-MAINT-002 | No unnecessary patterns | — | SI-001 §5 Constraints | All layers |
+| NFR-MAINT-002 | No unnecessary abstraction patterns | — | SI-001 §5 Constraints | All layers |
 | NFR-MAINT-003 | Test coverage | Business rule logic | — | Domain / Application |
 | NFR-MAINT-004 | Local setup documentation | — | SI-001 §5 Assumptions | DevOps / README |
 | NFR-COMPAT-001 | Local execution | — | SI-001 §5 Constraints | Infrastructure / DevOps |
@@ -695,15 +702,17 @@ Advanced audit logging (immutable event log, timestamp-stamped action history, e
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-07-18 | David Valdez (AI Assisted) | Initial draft — 23 NFRs across 8 categories calibrated to VacaFlow MVP local execution context |
+| 2.0 | 2026-07-18 | David Valdez, Laura Hernandez (AI Assisted) | Corrected all SI-001 section cross-references; reformulated NFR-MAINT-002 to remove non-existent quoted text; unified availability citations; corrected NFR Summary table totals |
+| 3.0 | 2026-07-20 | David Valdez, Laura Hernandez (AI Assisted) | Applied reviewer feedback: added Not Validated concurrency note and SI-001 §6 open gap reference to NFR-PERF-001 Conditions and NFR-AVAIL-001; added pending-confirmation note for Manager-to-Employee assignment model dependency in NFR-SEC-003; updated traceability table to reflect new cross-references |
 
 ---
 ## Document Control
 
 | Field | Value |
 |-------|-------|
-| Author | David Valdez (AI Assisted) |
-| Approval Authority | Solution Architect |
-| Status | Draft |
-| Signature | ⏳ Pending — awaiting approval |
+| Author | David Valdez, Laura Hernandez (AI Assisted) |
+| Approval Authority | Solution Architect (PM_OVERRIDE — bypassed Solution Architect) |
+| Status | Approved |
+| Signature | ✅ SIGNED by Laura Hernandez (laura.hernandez@arroyoconsulting.net) on 2026-07-20 16:14:09 UTC |
 
 *— End of document —*

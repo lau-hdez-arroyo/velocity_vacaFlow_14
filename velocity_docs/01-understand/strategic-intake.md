@@ -211,14 +211,13 @@ VacaFlow addresses a real, documented operational failure with a well-scoped, te
 | 1.1 | 2026-07-18 | Laura Hernandez (AI Assisted) | Added Cancelled flow to acceptance demonstration; aligned legal assumption validation method and ownership chain across Assumptions, Conditions, and Next Steps |
 
 ---
-
 ## Document Control
 
 | Field | Value |
 |-------|-------|
 | Author | Laura Hernandez (AI Assisted) |
-| Approval Authority | Product Owner |
-| Status | Draft |
-| Signature | ⏳ Pending — awaiting approval |
+| Approval Authority | Product Owner (PM_OVERRIDE — bypassed Product Owner) |
+| Status | Approved |
+| Signature | ✅ SIGNED by Laura Hernandez (laura.hernandez@arroyoconsulting.net) on 2026-07-18 04:40:16 UTC |
 
 *— End of document —*
