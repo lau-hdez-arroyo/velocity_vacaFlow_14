@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VacaFlow.Api.Extensions;
 using VacaFlow.Api.Middleware;
 using VacaFlow.Api.Slices.Auth;
+using VacaFlow.Api.Slices.Requests;
 using VacaFlow.Application.Validation;
 using VacaFlow.Domain.Ports;
 using VacaFlow.Infrastructure.Persistence;
@@ -25,8 +26,8 @@ builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 // 3. Validators (one IValidator<T> per command type)
 builder.Services.AddScoped<IValidator<RegisterSlice.RegisterCommand>, RegisterSlice.RegisterValidator>();
 builder.Services.AddScoped<IValidator<LoginSlice.LoginCommand>, LoginSlice.LoginValidator>();
-builder.Services.AddScoped<IValidator<VacaFlow.Api.Slices.Requests.CreateRequestSlice.CreateRequestCommand>, VacaFlow.Api.Slices.Requests.CreateRequestSlice.CreateRequestValidator>();
-builder.Services.AddScoped<IValidator<VacaFlow.Api.Slices.Requests.EditRequestSlice.EditRequestCommand>, VacaFlow.Api.Slices.Requests.EditRequestSlice.EditRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateRequestSlice.CreateRequestCommand>, CreateRequestSlice.CreateRequestValidator>();
+builder.Services.AddScoped<IValidator<EditRequestSlice.EditRequestCommand>, EditRequestSlice.EditRequestValidator>();
 
 // 4. Validation pipeline
 builder.Services.AddScoped<ValidationPipelineInvoker>();

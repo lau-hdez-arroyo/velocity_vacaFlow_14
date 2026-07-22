@@ -1,0 +1,4 @@
+# Playwright MCP session artifacts and verification screenshots (transient evidence)
+.playwright-mcp/
+/v2-*.png
+/us001-*.png

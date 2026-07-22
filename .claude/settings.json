@@ -58,7 +58,12 @@
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_close",
       "Skill(qa-docs)",
-      "Skill(qa-docs:*)"
+      "Skill(qa-docs:*)",
+      "Bash(dotnet --list-sdks)",
+      "Bash(dotnet --list-runtimes)",
+      "Bash(rm -f Domain/Class1.cs Application/Class1.cs Infrastructure/Class1.cs)",
+      "Bash(rm -f tests/Application.Tests/UnitTest1.cs tests/Api.Integration.Tests/UnitTest1.cs)",
+      "Bash(dotnet tool *)"
     ]
   }
 }

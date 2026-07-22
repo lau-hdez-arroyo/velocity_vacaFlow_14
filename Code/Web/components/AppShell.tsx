@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiGet, ApiError } from '@/lib/api-client';
+import { apiGet } from '@/lib/api-client';
 import type { CurrentUser } from '@/lib/types';
 import { colors } from '@/lib/theme';
 import { HeaderBar } from './HeaderBar';
@@ -31,10 +31,7 @@ export function AppShell({
         setUser(u);
         setState('ready');
       })
-      .catch((error) => {
-        if (error instanceof ApiError && error.status === 401) router.replace('/login');
-        else router.replace('/login');
-      });
+      .catch(() => router.replace('/login'));
     return () => {
       active = false;
     };

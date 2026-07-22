@@ -49,6 +49,24 @@ public class ApprovalSliceTests : IClassFixture<VacaFlowWebApplicationFactory>
         Assert.Equal("Approved — enjoy!", approval.Comment);
     }
 
+    [Fact] // US-008 AC-002 — employee sees the decision + comment in their list
+    public async Task Employee_list_shows_decision_and_comment_after_approval()
+    {
+        var employee = await SeededEmployeeAsync();
+        var id = await SubmittedRequestAsync(employee);
+        var manager = await SeededManagerAsync();
+        (await manager.PostAsJsonAsync($"/api/requests/{id}/approve", new { comment = "See you when you're back" }))
+            .EnsureSuccessStatusCode();
+
+        var list = await employee.GetFromJsonAsync<List<RequestListRow>>("/api/requests");
+        var row = Assert.Single(list!, r => r.Id == id);
+        Assert.Equal("Approved", row.Status);
+        Assert.Equal("Approved", row.Decision);
+        Assert.Equal("See you when you're back", row.DecisionComment);
+    }
+
+    private record RequestListRow(Guid Id, string Status, string? Decision, string? DecisionComment);
+
     [Fact] // AC-003 — reject
     public async Task Reject_transitions_to_rejected()
     {

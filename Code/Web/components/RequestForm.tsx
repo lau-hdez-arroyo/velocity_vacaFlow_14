@@ -30,6 +30,9 @@ export function RequestForm({ mode, requestId, initial }: { mode: 'new' | 'edit'
   const [startDate, setStartDate] = useState(initial?.startDate ?? '');
   const [endDate, setEndDate] = useState(initial?.endDate ?? '');
   const [reason, setReason] = useState(initial?.reason ?? '');
+  // Once a new request is created, reuse its id so a retry (e.g. after a failed submit) updates
+  // instead of creating a duplicate draft.
+  const [savedId, setSavedId] = useState<string | undefined>(requestId);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,14 +52,15 @@ export function RequestForm({ mode, requestId, initial }: { mode: 'new' | 'edit'
     setBusy(true);
     const payload = { absenceTypeId, startDate, endDate, reason };
     try {
-      let id = requestId;
-      if (mode === 'new') {
+      let id = savedId;
+      if (!id) {
         const created = await apiPost<{ id: string }>('/api/requests', payload);
         id = created.id;
+        setSavedId(id);
       } else {
-        await apiPut(`/api/requests/${requestId}`, payload);
+        await apiPut(`/api/requests/${id}`, payload);
       }
-      if (submit && id) await apiPost(`/api/requests/${id}/submit`, {});
+      if (submit) await apiPost(`/api/requests/${id}/submit`, {});
       router.push('/requests');
     } catch (error) {
       if (error instanceof ApiError) {
