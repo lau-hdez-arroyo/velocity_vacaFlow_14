@@ -11,6 +11,7 @@ obj/
 node_modules/
 .next/
 out/
+*.tsbuildinfo
 
 # Local env overrides
 .env.local
