@@ -56,7 +56,9 @@
       "PowerShell($r = Test-NetConnection -ComputerName localhost -Port 1433 -WarningAction SilentlyContinue; \"SQL 1433 reachable: $\\($r.TcpTestSucceeded\\)\")",
       "PowerShell($node = Get-CimInstance Win32_Process -Filter \"ProcessId=41172\" -ErrorAction SilentlyContinue; \"PID 41172 cmd: \" + \\($node.CommandLine\\); \"---\"; Stop-Process -Id 25796,41172 -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 400; foreach \\($p in 3000,5001,7001\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if \\($c\\) { \"$p -> STILL LISTENING \\(PID $\\($c.OwningProcess\\)\\)\" } else { \"$p -> free\" } })",
       "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "Skill(qa-docs)",
+      "Skill(qa-docs:*)"
     ]
   }
 }
