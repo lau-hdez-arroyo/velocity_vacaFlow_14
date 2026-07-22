@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Api/">
+    <Project Path="Api/VacaFlow.Api.csproj" />
+  </Folder>
+  <Folder Name="/Application/">
+    <Project Path="Application/VacaFlow.Application.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="Domain/VacaFlow.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Infrastructure/VacaFlow.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Api.Integration.Tests/Api.Integration.Tests.csproj" />
+    <Project Path="tests/Application.Tests/Application.Tests.csproj" />
+  </Folder>
+</Solution>

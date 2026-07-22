@@ -1,0 +1,16 @@
+# Build output
+bin/
+obj/
+
+# SQLite database file (must never be committed — BR-SEC-002)
+*.db
+*.db-shm
+*.db-wal
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Local env overrides
+.env.local

@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- ASP.NET Core 8 shared runtime is not installed on this machine (only 10.x);
+         roll forward so net8.0 assemblies run on the installed runtime. -->
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+</Project>
