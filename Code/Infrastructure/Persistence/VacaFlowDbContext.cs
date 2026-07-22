@@ -14,6 +14,8 @@ public class VacaFlowDbContext : DbContext
 
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<AbsenceType> AbsenceTypes => Set<AbsenceType>();
+    public DbSet<AbsenceRequest> AbsenceRequests => Set<AbsenceRequest>();
+    public DbSet<Approval> Approvals => Set<Approval>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +39,37 @@ public class VacaFlowDbContext : DbContext
             a.HasKey(x => x.Id);
             a.Property(x => x.Name).IsRequired();
             a.HasIndex(x => x.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<AbsenceRequest>(r =>
+        {
+            r.HasKey(x => x.Id);
+            r.Property(x => x.Reason).IsRequired().HasMaxLength(500);
+            r.Property(x => x.Status).HasConversion<string>().IsRequired();
+            r.HasOne<Employee>()
+                .WithMany()
+                .HasForeignKey(x => x.OwnerEmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            r.HasOne<AbsenceType>()
+                .WithMany()
+                .HasForeignKey(x => x.AbsenceTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Approval>(a =>
+        {
+            a.HasKey(x => x.Id);
+            a.HasIndex(x => x.RequestId).IsUnique(); // exactly one decision per request (BR-APPR-001)
+            a.Property(x => x.Decision).HasConversion<string>().IsRequired();
+            a.Property(x => x.Comment).HasMaxLength(1000);
+            a.HasOne<AbsenceRequest>()
+                .WithMany()
+                .HasForeignKey(x => x.RequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+            a.HasOne<Employee>()
+                .WithMany()
+                .HasForeignKey(x => x.DecidedByEmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

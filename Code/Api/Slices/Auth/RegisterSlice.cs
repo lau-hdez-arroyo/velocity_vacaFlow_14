@@ -1,7 +1,4 @@
 using System.Net.Mail;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VacaFlow.Application.Exceptions;
@@ -22,8 +19,6 @@ public static class RegisterSlice
 {
     // Role is nullable so an omitted "role" is a validation error, not a silent default to Employee (BR-USER-001).
     public record RegisterCommand(string FullName, string Email, string Password, Role? Role);
-
-    public record RegisteredUserDto(Guid Id, string FullName, string Email, string Role);
 
     public class RegisterValidator : IValidator<RegisterCommand>
     {
@@ -107,25 +102,9 @@ public static class RegisterSlice
             throw new ConflictException("Email already registered.");
         }
 
-        await SignInAsync(httpContext, employee);
+        await AuthSession.SignInAsync(httpContext, employee);
 
-        var dto = new RegisteredUserDto(employee.Id, employee.FullName, employee.Email, employee.Role.ToString());
-        // No GET-by-id resource exists yet (US-002+), so return 201 without a misleading Location header.
-        return Results.Created((string?)null, dto);
-    }
-
-    private static Task SignInAsync(HttpContext httpContext, Employee employee)
-    {
-        var claims = new List<Claim>
-        {
-            new("sub", employee.Id.ToString()),
-            new(ClaimTypes.NameIdentifier, employee.Id.ToString()),
-            new(ClaimTypes.Name, employee.FullName),
-            new(ClaimTypes.Email, employee.Email),
-            new(ClaimTypes.Role, employee.Role.ToString())
-        };
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        return httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+        // No GET-by-id resource exists yet, so return 201 without a misleading Location header.
+        return Results.Created((string?)null, AuthSession.ToDto(employee));
     }
 }

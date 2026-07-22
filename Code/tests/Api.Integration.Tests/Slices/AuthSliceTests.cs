@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using VacaFlow.Api.Slices.Auth;
 using VacaFlow.Domain.Enums;
 using VacaFlow.Infrastructure.Persistence;
 using static VacaFlow.Api.Slices.Auth.RegisterSlice;
@@ -51,7 +52,7 @@ public class AuthSliceTests : IClassFixture<VacaFlowWebApplicationFactory>
             new RegisterCommand("Mary Manager", "mary@example.com", "Passw0rd!", Role.Manager));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var dto = await response.Content.ReadFromJsonAsync<RegisteredUserDto>();
+        var dto = await response.Content.ReadFromJsonAsync<CurrentUserDto>();
         Assert.Equal("Manager", dto!.Role);
 
         using var scope = _factory.Services.CreateScope();
@@ -98,7 +99,7 @@ public class AuthSliceTests : IClassFixture<VacaFlowWebApplicationFactory>
             new StringContent(json, Encoding.UTF8, "application/json"));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var dto = await response.Content.ReadFromJsonAsync<RegisteredUserDto>();
+        var dto = await response.Content.ReadFromJsonAsync<CurrentUserDto>();
         Assert.Equal("Manager", dto!.Role);
     }
 

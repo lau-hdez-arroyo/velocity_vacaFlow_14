@@ -35,17 +35,17 @@ async function ensureXsrfToken(): Promise<void> {
   await fetch('/api/antiforgery/token', { credentials: 'include' });
 }
 
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
   await ensureXsrfToken();
 
   const response = await fetch(path, {
-    method: 'POST',
+    method,
     headers: {
       'Content-Type': 'application/json',
       [XSRF_HEADER]: getCookie(XSRF_COOKIE) ?? '',
     },
     credentials: 'include',
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -59,5 +59,22 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   }
 
   if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
+}
+
+export const apiPost = <T>(path: string, body: unknown) => send<T>('POST', path, body);
+export const apiPut = <T>(path: string, body: unknown) => send<T>('PUT', path, body);
+
+export async function apiGet<T>(path: string): Promise<T> {
+  const response = await fetch(path, { credentials: 'include' });
+  if (!response.ok) {
+    let problem: ProblemDetails = {};
+    try {
+      problem = (await response.json()) as ProblemDetails;
+    } catch {
+      /* non-JSON error body */
+    }
+    throw new ApiError(response.status, problem);
+  }
   return (await response.json()) as T;
 }

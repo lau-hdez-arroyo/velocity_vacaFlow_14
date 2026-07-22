@@ -24,6 +24,9 @@ builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 
 // 3. Validators (one IValidator<T> per command type)
 builder.Services.AddScoped<IValidator<RegisterSlice.RegisterCommand>, RegisterSlice.RegisterValidator>();
+builder.Services.AddScoped<IValidator<LoginSlice.LoginCommand>, LoginSlice.LoginValidator>();
+builder.Services.AddScoped<IValidator<VacaFlow.Api.Slices.Requests.CreateRequestSlice.CreateRequestCommand>, VacaFlow.Api.Slices.Requests.CreateRequestSlice.CreateRequestValidator>();
+builder.Services.AddScoped<IValidator<VacaFlow.Api.Slices.Requests.EditRequestSlice.EditRequestCommand>, VacaFlow.Api.Slices.Requests.EditRequestSlice.EditRequestValidator>();
 
 // 4. Validation pipeline
 builder.Services.AddScoped<ValidationPipelineInvoker>();

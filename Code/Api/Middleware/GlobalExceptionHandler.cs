@@ -21,6 +21,8 @@ public class GlobalExceptionHandler : IExceptionHandler
         var (status, title) = exception switch
         {
             ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
+            AuthorizationException => (StatusCodes.Status403Forbidden, "Forbidden"),
+            NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             DomainException => (StatusCodes.Status422UnprocessableEntity, "Business rule violation"),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
